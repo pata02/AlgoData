@@ -1,0 +1,267 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+
+public class Zip {
+    Bucket[] data;
+
+    int max;
+    // String[] stringArr = new String[100000];
+
+    Integer[] keys;
+
+    public class Node {
+        Integer code;
+        String name;
+        Integer pop;
+
+        public Node(Integer code, String name, Integer pop) {
+            this.code = code;
+            this.name = name;
+            this.pop = pop;
+        }
+    }
+
+    public class Bucket {
+        Node[] bucketArr;
+
+        public Bucket(Node zipHash) {
+            bucketArr = new Node[1];
+            bucketArr[0] = zipHash;
+        }
+
+        // Increase and add an node.
+        public void addHashNode(Node newNode) {
+            Node[] tempLarger = new Node[bucketArr.length + 1];
+
+            // Copy over
+            for (int i = 0; i < bucketArr.length; i++) {
+                tempLarger[i] = bucketArr[i];
+            }
+
+            // Add the new node in bucket
+            tempLarger[tempLarger.length - 1] = newNode;
+            bucketArr = tempLarger;
+        }
+
+    }
+
+    public Zip(String file) {
+        data = new Bucket[100000];
+        // int colPos = 0;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            int i = 0;
+
+            while ((line = br.readLine()) != null) {
+                String[] row = line.split(",");
+                Integer code = Integer.valueOf(row[0].replaceAll("\s", ""));
+                // keys[i++] = code;
+
+                // Create a new node with the row
+                Node kukBalle = new Node(code, row[1], Integer.valueOf(row[2]));
+
+                // Create new bucket if not created
+                if (data[hash(code)] == null) {
+                    data[hash(code)] = new Bucket(kukBalle); // You may want to pass a default Node here
+                } else {
+                    // Add it to a bucket
+                    data[hash(code)].addHashNode(kukBalle);
+                }
+
+                // String[] row = line.split(",");
+                // data[i++] = new Node(row[0], row[1], Integer.valueOf(row[2]));
+                // del 2.1Integer code = Integer.valueOf(row[0].replaceAll("\\s", ""));
+                // del 2.1stringArr[code] = row[1];
+                // new Node(code, row[1], Integer.valueOf(row[2]));
+
+            }
+
+            max = i - 1;
+        } catch (Exception e) {
+            System.out.println(" file " + file + " not found");
+        }
+
+        /*
+         * Gamla nod struktur
+         * data = new Node[10000];
+         * 
+         * try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+         * String line;
+         * int i = 0;
+         * 
+         * while ((line = br.readLine()) != null) {
+         * String[] row = line.split(",");
+         * // data[i++] = new Node(row[0], row[1], Integer.valueOf(row[2]));
+         * 
+         * Integer code = Integer.valueOf(row[0].replaceAll("\\s", ""));
+         * data[i++] = new Node(code, row[1], Integer.valueOf(row[2]));
+         * 
+         * }
+         * 
+         * max = i - 1;
+         * } catch (Exception e) {
+         * System.out.println(" file " + file + " not found");
+         * }
+         */
+    }
+
+    public static int hash(int code) {
+        return (code % 14000);
+
+    }
+
+    public Node lookup1(int zipCode) {
+        int bucketRowCounter = 0;
+        // This is the correct bucket
+        Bucket hashBucket = data[hash(zipCode)];
+
+        // Search in the hashbucket
+        for (int i = 0; i < hashBucket.bucketArr.length; i++) {
+
+
+            // Compare every value in hashbucket
+            if (hashBucket.bucketArr[i].code == zipCode) {
+                System.out.println("The node was at place nr " + bucketRowCounter + " in the bucket");
+                return hashBucket.bucketArr[i];
+
+            }
+
+            bucketRowCounter++;
+        }
+
+        System.out.println("Something is very wrong, no value found in the bucket");
+        return null;
+    }
+
+    // public String lookup(int key) {
+    // return stringArr[key];
+    // }
+
+    /*
+     * public Node linear(int key) {
+     * for (int i = 0; i <= max; i++) {
+     * if (data[i].code == key) {
+     * return data[i];
+     * }
+     * }
+     * return null; // Zip not found
+     * }
+     * 
+     * public Node binary(Integer zip) {
+     * int first = 0;
+     * int last = max;
+     * 
+     * while (first <= last) {
+     * int mid = first + (last - first) / 2;
+     * 
+     * // Check if the zip code at the middle element matches the target
+     * if (data[mid].code.equals(zip)) {
+     * return data[mid];
+     * }
+     * 
+     * // If zip code is greater, ignore first half
+     * // Gamla if (data[mid].code.compareTo(zip) < 0) {
+     * // first = mid + 1;
+     * // }
+     * 
+     * if (data[mid].code < zip) {
+     * first = mid + 1;
+     * }
+     * 
+     * // If zip code is smaller, ignore last half
+     * else {
+     * last = mid - 1;
+     * }
+     * }
+     * 
+     * return null; // Zip not found
+     * }
+     */
+
+    /*
+     * public void collisions(int mod) {
+     * int[] data = new int[mod];
+     * int[] cols = new int[10];
+     * 
+     * for (int i = 0; i < max; i++) {
+     * Integer index = keys[i] % mod;
+     * cols[data[index]]++;
+     * data[index]++;
+     * }
+     * 
+     * System.out.print(mod);
+     * 
+     * for (int i = 0; i < 10; i++) {
+     * System.out.print("\t" + cols[i]);
+     * }
+     * 
+     * System.out.println();
+     * }
+     */
+
+    public static void main(String[] args) {
+        Zip myZip = new Zip("postnummer.csv");
+        int target1 = 11115;
+        int target2 = 98499;
+
+        Zip.Node result1 = myZip.lookup1(target1);
+        Zip.Node result2 = myZip.lookup1(target2);
+
+        if (result1 != null) {
+            System.out.println("Result for " + target1 + ": " + result1.name);
+        } else {
+            System.out.println("Zip code " + target1 + " not found.");
+        }
+
+        if (result2 != null) {
+            System.out.println("Result for " + target2 + ": " + result2.name);
+        } else {
+            System.out.println("Zip code " + target1 + " not found.");
+        }
+
+        // Zip.Node myNode = myZip.linear("171 72");
+        // System.out.println("Found " + myNode.code + ". City: " + myNode.name + ".
+        // Pop: " + myNode.pop);
+
+        /*
+         * int[] moduloValues = {10000, 20000, 12345, 13513, 13600, 14000};
+         * System.out.println("Modulo\tCollisions");
+         * 
+         * for (int mod : moduloValues) {
+         * myZip.collisions(mod);
+         * }
+         */
+
+        // Benchmark fram tills size matters
+        /*
+         * int target1 = 11115; // String target1 = "111 15";
+         * int target2 = 98499; // String target2 = "984 99";
+         * 
+         * double t0 = System.nanoTime();
+         * String result2 = myZip.lookup(target2);
+         * double t1 = System.nanoTime();
+         * double time2 = t1 - t0;
+         * 
+         * t0 = System.nanoTime();
+         * String result1 = myZip.lookup(target1);
+         * t1 = System.nanoTime();
+         * double time1 = t1 - t0;
+         * 
+         * // Output the results
+         * if (result1 != null) {
+         * System.out.println("Result for " + target1 + result1 + ": " + time1 / 1000 +
+         * "us");
+         * } else {
+         * System.out.println("Zip code " + target1 + " not found.");
+         * }
+         * 
+         * if (result2 != null) {
+         * System.out.println("Result for " + target2 + result2 + ": " + time2 / 1000 +
+         * "us");
+         * } else {
+         * System.out.println("Zip code " + target2 + " not found.");
+         * }
+         */
+    }
+}
